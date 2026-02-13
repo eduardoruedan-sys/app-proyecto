@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Jugando con los Números Enteros — V4.7.6a</title>
+<style>
+  :root{--bg:#0f172a; --panel:#111827; --card:#1f2937; --accent:#60a5fa; --accent-2:#3b82f6; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444; --muted:#94a3b8;}
+  *{box-sizing:border-box} html,body{margin:0;padding:0;background:var(--bg);color:#e5e7eb;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,"Helvetica Neue",Arial}
+  .wrap{max-width:1000px;margin:0 auto;padding:16px 16px 160px}
+  header{position:sticky; top:0; z-index:10; background:linear-gradient(180deg,var(--bg),rgba(15,23,42,.86)); backdrop-filter: blur(4px);
+          padding:10px 12px; margin:0 -16px 8px; border-bottom:1px solid #1e293b; display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  h1{font-size:1.05rem;margin:0;white-space:nowrap}
+  .pill{margin-left:auto;background:#0b1220;border:1px solid #1e293b;color:#cbd5e1;padding:6px 10px;border-radius:999px;font-size:12px}
+  .card{background:var(--panel);border:1px solid #1e293b;border-radius:16px;padding:14px;margin:12px 0; box-shadow: 0 4px 20px rgba(0,0,0,.25)}
+  .hint{color:var(--muted);font-size:.9rem;margin:6px 0 12px} .row{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{background:var(--accent);color:#071426;border:0;padding:12px 14px;border-radius:12px;font-weight:700;cursor:pointer} .btn.secondary{background:#0b1220;color:#cbd5e1;border:1px solid #23324a}
+  .btn.warn{background:#f59e0b;color:#071426} .btn.ghost{background:transparent;border:1px dashed #334155;color:#cbd5e1}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center} .score{font-weight:700}
+  .dr-area{display:grid;grid-template-columns: repeat(5,1fr);gap:8px;padding:10px;background:#0b1220;border:1px dashed #334155;border-radius:16px}
+  .slot{min-height:64px;border:2px dashed #334155;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#93c5fd;font-weight:700;user-select:none}
+  .bank{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px} .tile{background:#1f2937;border:1px solid #253041;padding:10px 14px;border-radius:14px;display:flex;align-items:center;gap:8px;font-size:20px;font-weight:800;min-width:70px;justify-content:center;touch-action:none;cursor:grab}
+  .row-cmp{display:grid;grid-template-columns:1fr auto 1fr auto;align-items:center;gap:10px;background:#0b1220;padding:10px;border-radius:12px;margin:8px 0;border:1px solid #223049}
+  .cmp-mid button{background:#0d1b2a;color:#cbd5e1;border:1px solid #223049;border-radius:12px;padding:10px 14px;font-size:18px;width:56px;cursor:pointer}
+  .kbd{background:#0b1220;border:1px solid #223049;border-radius:8px;padding:2px 6px} .grid2{display:grid;grid-template-columns:1fr;gap:10px}
+  @media(min-width:700px){ .grid2{grid-template-columns:1fr 1fr} }
+  input[type="number"], input[type="text"], select{ background:#0d1b2a;border:1px solid #223049;border-radius:10px;padding:10px;color:#e5e7eb;font-size:16px;text-align:center }
+  input[type="text"].wide{ text-align:left; width:210px }
+  footer{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(0deg,var(--bg),rgba(15,23,42,.86));padding:8px 16px;border-top:1px solid #1e293b}
+  footer .bar{max-width:1000px;margin:0 auto;display:flex;gap:8px;flex-wrap:wrap}
+  .audio-toggle{margin-left:6px;background:#0b1220;border:1px solid #23324a;color:#cbd5e1;padding:10px;border-radius:12px}
+  /* Intro overlay */ .intro{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% 20%, rgba(96,165,250,.15), transparent), var(--bg); z-index:9999;}
+  .intro .card{max-width:560px; width:92%; text-align:center; border:1px solid #203049; background:linear-gradient(180deg,#0b1526,#0b0f1d); padding:18px; border-radius:20px; box-shadow:0 20px 80px rgba(0,0,0,.5);}
+  .vidbox{position:relative; width:100%; aspect-ratio:16/9; border-radius:14px; overflow:hidden; border:1px solid #223049; margin:8px 0; background:black;}
+  .vidbox video{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;}
+  .ytRow{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:8px}
+  /* A5 grid */
+  #countGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;min-height:220px;background:#0b1220;border:1px dashed #334155;border-radius:12px;padding:10px;font-size:28px;line-height:42px;text-align:center}
+  #countGrid .cell{height:42px;display:flex;align-items:center;justify-content:center}
+  .count-opts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .picked{outline:2px solid var(--accent)}
+  .hidden{display:none}
+  .result{margin-top:6px;font-weight:700}
+  .good{color:var(--ok)} .bad{color:var(--bad)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Jugando con los Números Enteros</h1>
+  <button id="audioBtn" class="audio-toggle" aria-pressed="false">🔈 Audio: apagado</button>
+  <span class="pill">V4.7.6a · móvil/desktop</span>
+</header>
+
+<!-- Intro overlay -->
+<div class="intro" id="intro">
+  <div class="card">
+    <h2>Hola, soy <b>Liliana Palacios</b> 👋🏽</h2>
+    <p>Ven a explorar conmigo los <b>números enteros</b>. ¡Será rápido y divertido!</p>
+
+    <div class="vidbox">
+      <video id="introVid" playsinline controls preload="metadata" src="intro_v47.mp4">
+        Tu navegador no soporta video HTML5.
+      </video>
+    </div>
+
+    <div class="ytRow">
+      <a class="btn secondary" href="https://youtu.be/OUiYVbcXmnE" target="_blank" rel="noopener">🔗 Ver en YouTube</a>
+      <button class="btn secondary" id="skipIntro">⏭️ Saltar intro</button>
+    </div>
+    <small>Si el MP4 no reproduce en tu navegador, usa el botón de YouTube. Puedes <b>Saltar intro</b> cuando quieras.</small>
+  </div>
+</div>
+
+<div class="wrap">
+  <!-- Datos estudiante -->
+  <div class="card">
+    <h2 class="speakable">Datos del estudiante</h2>
+    <div class="row">
+      <label class="hint">Nombre:</label>
+      <input id="studentName" class="wide" type="text" placeholder="Escribe tu nombre" />
+      <label class="hint">Curso/Grupo:</label>
+      <input id="studentGroup" class="wide" type="text" placeholder="p. ej., 8C o 9B" />
+      <button class="btn secondary" id="saveName">Guardar datos</button>
+      <span id="hello" class="hint"></span>
+    </div>
+    <div class="row">
+      <button class="btn" id="saveAttempt">💾 Guardar intento</button>
+      <button class="btn secondary" id="showHistory">📜 Ver historial</button>
+      <button class="btn warn" id="teacherMode">👩‍🏫 Modo docente</button>
+      <button class="btn ghost" id="settingsBtn">⚙️ Configurar</button>
+      <button class="btn" id="exportExcel">📊 Exportar a Excel</button>
+    </div>
+    <p class="hint">Autora: <b>Carmen Liliana Palacios</b>. Este recurso guarda localmente intentos en este dispositivo.</p>
+  </div>
+
+  <!-- Actividades -->
+  <div class="card" id="a1">
+    <h2 class="speakable">Actividad 1 — Ordena y ubica (arrastrar y soltar)</h2>
+    <p class="hint speakable">Arrastra cada tarjeta <span class="kbd">🥶 ±n</span> al recuadro correcto.</p>
+    <div class="dr-area" id="slots"></div>
+    <div class="bank" id="bank"></div>
+    <div class="toolbar">
+      <button class="btn" id="check1">Revisar</button>
+      <button class="btn secondary" id="new1">Nueva tanda</button>
+      <span class="score" id="score1">Puntos: 0/5</span>
+    </div>
+    <div class="result" id="res1"></div>
+  </div>
+
+  <div class="card" id="a2">
+    <h2 class="speakable">Actividad 2 — Rellena con el signo correcto</h2>
+    <p class="hint speakable">Toca el signo que completa cada comparación.</p>
+    <div id="cmpList"></div>
+    <div class="toolbar">
+      <button class="btn" id="check2">Revisar</button>
+      <button class="btn secondary" id="new2">Nueva tanda</button>
+      <span class="score" id="score2">Puntos: 0/5</span>
+    </div>
+    <div class="result" id="res2"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card" id="a3">
+      <h2 class="speakable">Actividad 3 — Suma y resta de enteros</h2>
+      <p class="hint speakable">Resuelve mentalmente y escribe el resultado.</p>
+      <div id="opsList"></div>
+      <div class="toolbar">
+        <button class="btn" id="check3">Revisar</button>
+        <button class="btn secondary" id="new3">Nueva tanda</button>
+        <span class="score" id="score3">Puntos: 0/5</span>
+      </div>
+      <div class="result" id="res3"></div>
+    </div>
+
+    <div class="card" id="a4">
+      <h2 class="speakable">Actividad 4 — Recta numérica con caritas</h2>
+      <p class="hint speakable">Arrastra el emoji correcto a cada número: <b>🥶</b> negativos, <b>😐</b> cero, <b>😊</b> positivos.</p>
+      <div id="lineWrap"></div>
+      <div class="palette" id="palette" style="display:flex;gap:8px;margin-top:10px"></div>
+      <div class="toolbar">
+        <button class="btn" id="check4">Revisar</button>
+        <button class="btn secondary" id="new4">Nueva tanda</button>
+        <span class="score" id="score4">Puntos: 0/5</span>
+      </div>
+      <div class="result" id="res4"></div>
+    </div>
+  </div>
+
+  <div class="card" id="a5">
+    <h2 class="speakable">Actividad 5 — Conteo interactivo</h2>
+    <p class="hint speakable">Cuenta los objetos y toca la opción correcta.</p>
+    <div class="row">
+      <label class="hint">Banco de iconos:</label>
+      <select id="iconBank">
+        <option value="mixed" selected>Mixto</option>
+        <option value="frutas">Solo frutas</option>
+        <option value="deportes">Solo deportes</option>
+        <option value="formas">Solo formas</option>
+      </select>
+      <button class="btn secondary" id="applyBank">Aplicar</button>
+    </div>
+    <div id="countGrid" class="count-grid"></div>
+    <div class="count-opts" id="countOpts"></div>
+    <div class="toolbar">
+      <button class="btn" id="check5">Revisar</button>
+      <button class="btn secondary" id="new5">Nueva tanda</button>
+      <span class="score" id="score5">Puntos: 0/5</span>
+    </div>
+    <div class="result" id="res5"></div>
+  </div>
+
+  <!-- Enlaces externos -->
+  <div class="card">
+    <h2>Actividades directas (pestaña nueva)</h2>
+    <div style="display:grid;grid-template-columns:1fr;gap:10px">
+      <a class="btn ghost" href="https://phet.colorado.edu/es/simulations/number-line-integers" target="_blank" rel="noopener">PhET: Recta de enteros</a>
+      <a class="btn ghost" href="https://phet.colorado.edu/et/simulations/number-line-operations" target="_blank" rel="noopener">PhET: Operaciones en recta</a>
+      <a class="btn ghost" href="https://es.educaplay.com/recursos-educativos/26409732-matematicas_divertidas_numeros_enteros.html" target="_blank" rel="noopener">Educaplay: Números enteros divertidos</a>
+      <a class="btn ghost" id="extra1" href="https://wordwall.net/es/resource/101249062" target="_blank" rel="noopener">Actividad extra #1</a>
+      <a class="btn ghost" id="extra2" href="https://wordwall.net/es/resource/101252034" target="_blank" rel="noopener">Actividad extra #2</a>
+    </div>
+    <p class="hint">Los enlaces #1 y #2 quedan fijos de forma permanente.</p>
+  </div>
+
+  <div class="card hidden" id="historyCard"><h2>Historial de intentos</h2><div id="historyTableWrap"></div></div>
+  <div class="card hidden" id="teacherCard"><h2>Panel Docente</h2><div class="row"><button class="btn" id="exportCsv">⬇️ Exportar CSV</button><button class="btn secondary" id="saveEdits">💾 Guardar cambios</button><button class="btn ghost" id="changePin">🔐 Cambiar PIN</button><button class="btn warn" id="clearAll">🗑️ Borrar todo</button></div><div id="teacherTableWrap" style="margin-top:10px;"></div><div id="groupReport" class="hint"></div></div>
+</div>
+
+<footer>
+  <div class="bar">
+    <button class="btn secondary" onclick="scrollToEl('a1')">1 Ordena</button>
+    <button class="btn secondary" onclick="scrollToEl('a2')">2 Signos</button>
+    <button class="btn secondary" onclick="scrollToEl('a3')">3 Operaciones</button>
+    <button class="btn secondary" onclick="scrollToEl('a4')">4 Recta</button>
+    <button class="btn secondary" onclick="scrollToEl('a5')">5 Conteo</button>
+  </div>
+</footer>
+
+<script>
+/* Utilidades */
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const sample=(arr,n)=>{const c=[...arr],o=[];while(o.length<n&&c.length)o.push(c.splice(rnd(0,c.length-1),1)[0]);return o;}
+function scrollToEl(id){document.getElementById(id).scrollIntoView({behavior:'smooth'});}
+const nowISO=()=>new Date().toISOString().replace('T',' ').slice(0,19);
+
+/* Audio */
+let audioOn=false;
+const audioBtn=document.getElementById('audioBtn');
+function speak(text){ if(!('speechSynthesis' in window) || !audioOn) return; const u=new SpeechSynthesisUtterance(text); u.lang='es-CO'; speechSynthesis.cancel(); speechSynthesis.speak(u); }
+audioBtn.addEventListener('click',()=>{ audioOn=!audioOn; audioBtn.textContent = audioOn ? '🔊 Audio: encendido' : '🔈 Audio: apagado'; });
+
+/* Storage */
+const KEY_NS='je_v476a';
+const KEY_ALL=KEY_NS+'_intentos_all';
+const KEY_NAME=KEY_NS+'_name', KEY_GROUP=KEY_NS+'_group';
+
+/* Intro: binding seguro */
+document.addEventListener('DOMContentLoaded', ()=>{
+  const intro=document.getElementById('intro');
+  const skipIntro=document.getElementById('skipIntro');
+  const introVid=document.getElementById('introVid');
+  if(skipIntro){
+    skipIntro.addEventListener('click', ()=>{
+      try { if(introVid && !introVid.paused) introVid.pause(); } catch(e){}
+      if(intro) intro.style.display='none';
+    });
+  }
+});
+
+/* TTS palabra por palabra */
+function makeSpeakable(){
+  document.querySelectorAll('.speakable').forEach(node=>{
+    const text=node.textContent; const parts=text.split(/(\s+)/); node.innerHTML='';
+    parts.forEach(p=>{
+      if(/\s+/.test(p)) node.appendChild(document.createTextNode(p));
+      else { const s=document.createElement('span'); s.textContent=p; s.style.cursor='pointer'; s.onclick=()=>speak(p); node.appendChild(s); }
+    });
+  });
+}
+makeSpeakable();
+
+/* Datos estudiante */
+const studentName=document.getElementById('studentName');
+const studentGroup=document.getElementById('studentGroup');
+const hello=document.getElementById('hello');
+document.getElementById('saveName').onclick=()=>{ localStorage.setItem(KEY_NAME, (studentName.value||'').trim()); localStorage.setItem(KEY_GROUP, (studentGroup.value||'').trim()); hello.textContent='Hola, '+(studentName.value||'')+' 👋'; };
+studentName.value=localStorage.getItem(KEY_NAME)||''; studentGroup.value=localStorage.getItem(KEY_GROUP)||''; if(studentName.value) hello.textContent='Hola, '+studentName.value+' 👋';
+
+/* ===== A1 ===== */
+const slots=document.getElementById('slots'); const bank=document.getElementById('bank'); const score1=document.getElementById('score1'); const res1=document.getElementById('res1');
+function enableDnD(el){ el.setAttribute('draggable','true'); el.addEventListener('dragstart', e=>{ e.dataTransfer.setData('text/plain', el.id); }); }
+function newA1(){ slots.innerHTML=''; bank.innerHTML=''; const start=rnd(-9,-3); const targets=Array.from({length:5},(_,i)=>start+i);
+  targets.forEach(v=>{ const s=document.createElement('div'); s.className='slot'; s.dataset.v=v; s.textContent=v;
+    s.ondragover=e=>e.preventDefault(); s.ondrop=e=>{ e.preventDefault(); const id=e.dataTransfer.getData('text/plain'); const t=document.getElementById(id); if(!t) return; s.innerHTML=''; s.appendChild(t); };
+    slots.appendChild(s); });
+  const tiles=sample(targets,5);
+  tiles.forEach((v,i)=>{ const t=document.createElement('div'); t.className='tile'; t.id='t'+i; t.innerHTML='🥶 '+v; t.dataset.v=v; enableDnD(t); bank.appendChild(t); });
+  score1.textContent='Puntos: 0/5';
+}
+function checkA1(){ let ok=0; [...slots.children].forEach(s=>{ const tile=s.querySelector('.tile'); if(tile && Number(tile.dataset.v)===Number(s.dataset.v)) ok++; }); score1.textContent='Puntos: '+ok+'/5'; res1.textContent = `${ok} de 5 · ${ok} puntos`; res1.className='result '+(ok>=3?'good':'bad'); return ok; }
+document.getElementById('check1').onclick=checkA1;
+document.getElementById('new1').onclick=newA1;
+
+/* ===== A2 ===== */
+const cmpList=document.getElementById('cmpList'); const score2=document.getElementById('score2'); const res2=document.getElementById('res2'); let a2=[];
+function newA2(){ cmpList.innerHTML=''; a2=[]; for(let i=0;i<5;i++){ const A=rnd(-9,9), B=rnd(-9,9); const ans=A<B?'<':A>B?'>':'='; const row=document.createElement('div'); row.className='row-cmp';
+  const L=document.createElement('div'); L.textContent=A; const mid=document.createElement('div'); mid.className='cmp-mid'; const R=document.createElement('div'); R.textContent=B; const tag=document.createElement('div'); tag.className='hint'; tag.textContent='Sin responder';
+  ['<','>','='].forEach(sig=>{ const b=document.createElement('button'); b.textContent=sig; b.onclick=()=>{ [...mid.children].forEach(x=>x.classList.remove('active')); b.classList.add('active'); a2[i].c=sig; tag.textContent='Elegido: '+sig; }; mid.appendChild(b); });
+  row.append(L,mid,R,tag); cmpList.appendChild(row); a2.push({A,B,ans,c:null}); } score2.textContent='Puntos: 0/5'; }
+function checkA2(){ let ok=0; [...cmpList.children].forEach((row,i)=>{ const tag=row.querySelector('.hint'); if(a2[i].c===a2[i].ans){ ok++; tag.textContent='Correcto'; } else tag.textContent='Incorrecto'; }); score2.textContent='Puntos: '+ok+'/5'; res2.textContent = `${ok} de 5 · ${ok} puntos`; res2.className='result '+(ok>=3?'good':'bad'); return ok; }
+document.getElementById('check2').onclick=checkA2;
+document.getElementById('new2').onclick=newA2;
+
+/* ===== A3 ===== */
+const opsList=document.getElementById('opsList'); const score3=document.getElementById('score3'); const res3=document.getElementById('res3'); let a3=[];
+function newA3(){ opsList.innerHTML=''; a3=[]; const ops=['+','-']; for(let i=0;i<5;i++){ const A=rnd(-9,9), B=rnd(1,9)*(Math.random()<.5?-1:1); const op=ops[rnd(0,1)]; const ans=op==='+'?A+B:A-B;
+  const row=document.createElement('div'); row.className='row'; const span=document.createElement('div'); span.style.minWidth='180px'; span.style.fontWeight='800'; span.textContent=`${A} ${op} ${B} =`; const inp=document.createElement('input'); inp.type='number'; row.append(span,inp); opsList.appendChild(row); a3.push({ans,inp}); }
+  score3.textContent='Puntos: 0/5'; }
+function checkA3(){ let ok=0; a3.forEach(o=>{ const v=Number(o.inp.value); const good = !Number.isNaN(v) && v===o.ans; o.inp.style.borderColor = good? '#22c55e':'#ef4444'; if(good) ok++; }); score3.textContent='Puntos: '+ok+'/5'; res3.textContent = `${ok} de 5 · ${ok} puntos`; res3.className='result '+(ok>=3?'good':'bad'); return ok; }
+document.getElementById('check3').onclick=checkA3;
+document.getElementById('new3').onclick=newA3;
+
+/* ===== A4 (recta + caritas) ===== */
+const lineWrap=document.getElementById('lineWrap'); const palette=document.getElementById('palette'); const score4=document.getElementById('score4'); const res4=document.getElementById('res4');
+function newA4(){ lineWrap.innerHTML=''; palette.innerHTML='';
+  const pool=Array.from({length:19},(_,i)=>i-9); const chosen=[]; while(chosen.length<5){ const x=pool[rnd(0,pool.length-1)]; if(!chosen.includes(x)) chosen.push(x); }
+  const row=document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between';
+  chosen.sort((a,b)=>a-b).forEach(n=>{ const col=document.createElement('div'); col.style.textAlign='center';
+    const target=document.createElement('div'); target.dataset.n=n; target.className='target'; target.style.cssText='width:48px;height:48px;border:2px dashed #334155;border-radius:10px;margin:8px auto;display:flex;align-items:center;justify-content:center;font-size:24px';
+    target.ondragover=e=>e.preventDefault(); target.ondrop=e=>{ e.preventDefault(); const id=e.dataTransfer.getData('text/plain'); const t=document.getElementById(id); if(!t) return; target.innerHTML=''; target.appendChild(t); };
+    const tick=document.createElement('div'); tick.style.cssText='height:2px;background:#334155;margin:8px 0';
+    const label=document.createElement('div'); label.textContent=String(n);
+    col.append(tick,target,label); row.appendChild(col); });
+  lineWrap.appendChild(row);
+  const face=(n)=> n<0?'🥶':(n>0?'😊':'😐');
+  chosen.forEach((n,i)=>{ const t=document.createElement('div'); t.id='em'+i; t.className='tile'; t.textContent=face(n); t.style.fontSize='24px'; enableDnD(t); palette.appendChild(t); });
+  score4.textContent='Puntos: 0/5';
+}
+function checkA4(){ const face=(n)=> n<0?'🥶':(n>0?'😊':'😐'); let ok=0; document.querySelectorAll('.target').forEach(trg=>{ const n=Number(trg.dataset.n); const child=trg.firstElementChild; if(child && child.textContent===face(n)) ok++; }); score4.textContent='Puntos: '+ok+'/5'; res4.textContent = `${ok} de 5 · ${ok} puntos`; res4.className='result '+(ok>=3?'good':'bad'); return ok; }
+document.getElementById('check4').onclick=checkA4;
+document.getElementById('new4').onclick=newA4;
+
+/* ===== A5 (conteo) ===== */
+const countGrid=document.getElementById('countGrid'); const countOpts=document.getElementById('countOpts'); const score5=document.getElementById('score5'); const res5=document.getElementById('res5'); const iconBank=document.getElementById('iconBank'); let a5Ans=0, a5Sel=null, a5Last='mixed';
+document.getElementById('applyBank').onclick=()=>newA5(true);
+function listIcons(k){ if(k==='frutas') return ['🍎','🍐','🍌','🍇','🍓']; if(k==='deportes') return ['⚽','🏀','🏈','🎾','🏐']; if(k==='formas') return ['⭐','🔺','🔵','⬛','🔷']; return ['🍎','📦','⭐','🧩','⚽','🍪']; }
+function newA5(force=false){ if(force) a5Last = iconBank.value; countGrid.innerHTML=''; countOpts.innerHTML=''; a5Sel=null; const icons=listIcons(a5Last); const icon=icons[rnd(0,icons.length-1)];
+  const total=rnd(6,15); a5Ans=total; const cells=25; const idxs=Array.from({length:cells},(_,i)=>i); const chosen=sample(idxs,total);
+  for(let i=0;i<cells;i++){ const d=document.createElement('div'); d.className='cell'; d.textContent = chosen.includes(i)? icon : ''; countGrid.appendChild(d); }
+  const opts=[total, Math.max(0,total-1), total+1, Math.max(0,total-2), total+2]; [...new Set(opts)].slice(0,5).sort(()=>Math.random()-0.5).forEach(v=>{ const b=document.createElement('button'); b.className='btn secondary'; b.textContent=String(v); b.onclick=()=>{ [...countOpts.children].forEach(x=>x.classList.remove('picked')); b.classList.add('picked'); a5Sel=v; }; countOpts.appendChild(b); });
+  score5.textContent='Puntos: 0/5';
+}
+function checkA5(){ let ok=0; if(a5Sel===a5Ans) ok=1; score5.textContent='Puntos: '+ok+'/5'; res5.textContent = `${ok} de 5 · ${ok} puntos`; res5.className='result '+(ok>=3?'good':'bad'); return ok; }
+document.getElementById('check5').onclick=checkA5;
+document.getElementById('new5').onclick=newA5;
+
+/* Guardar intento + historial + export */
+function totalPts(){ return checkA1()+checkA2()+checkA3()+checkA4()+checkA5(); }
+document.getElementById('saveAttempt').onclick=()=>{ const name=(studentName.value||'').trim(); if(!name) return alert('Primero escribe tu nombre.');
+  const group=(studentGroup.value||'').trim(); const s={a1:checkA1(),a2:checkA2(),a3:checkA3(),a4:checkA4(),a5:checkA5()}; const total=s.a1+s.a2+s.a3+s.a4+s.a5; const grade=Math.round(((total/25)*5)*10)/10;
+  const all = JSON.parse(localStorage.getItem(KEY_ALL)||'[]'); all.push({name, group, ts:nowISO(), total, grade, ...s}); localStorage.setItem(KEY_ALL, JSON.stringify(all)); alert('Intento guardado.'); };
+
+document.getElementById('showHistory').onclick=()=>{ const card=document.getElementById('historyCard'); card.classList.toggle('hidden'); const name=(studentName.value||'').trim();
+  const all = JSON.parse(localStorage.getItem(KEY_ALL)||'[]').filter(r=>r.name===name).slice(-3);
+  let html='<table><thead><tr><th>Fecha</th><th>Total/25</th><th>Nota/5</th></tr></thead><tbody>'; all.forEach(r=>{ html+=`<tr><td>${r.ts}</td><td>${r.total}</td><td>${r.grade}</td></tr>`; }); html+='</tbody></table>'; document.getElementById('historyTableWrap').innerHTML=html; };
+
+document.getElementById('exportCsv').onclick=()=>{ const all = JSON.parse(localStorage.getItem(KEY_ALL)||'[]'); if(!all.length) return alert('No hay datos.');
+  const header=['fecha','nombre','grupo','a1','a2','a3','a4','a5','total','nota']; const rows=[header.join(',')].concat(all.map(r=>[r.ts,r.name,r.group,r.a1,r.a2,r.a3,r.a4,r.a5,r.total,r.grade].join(','))); 
+  const blob=new Blob([rows.join('\n')],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='numeros-enteros-v476a.csv'; a.click(); };
+
+document.getElementById('exportExcel').onclick=()=>{
+  if(!confirm('¿Deseas exportar tus resultados a Excel?')) return;
+  const all = JSON.parse(localStorage.getItem(KEY_ALL)||'[]');
+  if(!all.length){ alert('No hay datos para exportar.'); return; }
+  const header=['Fecha','Nombre','Grupo','A1','A2','A3','A4','A5','Total','Nota'];
+  const rows=[header].concat(all.map(r=>[r.ts,r.name,r.group,r.a1,r.a2,r.a3,r.a4,r.a5,r.total,r.grade]));
+  const csv = rows.map(row => row.map(v => (v==null ? '' : String(v))).join(',')).join('\n').replace(/\n/g,'\r\n');
+  const blob=new Blob([csv],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='resultado_numeros_enteros.xlsx'; a.click();
+};
+
+/* Inicializar */
+function init(){ newA1(); newA2(); newA3(); newA4(); newA5(); }
+init();
+</script>
+</body>
+</html>
